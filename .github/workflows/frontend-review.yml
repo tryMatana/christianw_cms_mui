@@ -1,0 +1,41 @@
+name: Frontend Candidate Review
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/**
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Production Build
+        run: npm run build
+
+      - name: Upload Preview Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-dist
+          path: ./dist
